@@ -10,6 +10,7 @@ class Canvas(tk.Frame):
         self.last_coor = None
         self.trajactory = []
         self.drawable = True
+        self.scale = 75
 
         self.pack_canvas(self)
         self.pack_buttons(self)
@@ -56,6 +57,9 @@ class Canvas(tk.Frame):
 
             self.last_coor = x, y
             self.trajactory.append([x, y])
+
+        def grid():
+            pass
 
         canvas = tk.Canvas(master=parent,
             width=500, height=400,

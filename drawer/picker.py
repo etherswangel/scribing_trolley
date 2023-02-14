@@ -9,4 +9,12 @@ class Picker(tk.Frame):
         self.pack_box(self)
 
     def pack_box(self, parent):
-        pass
+        frm_picker = tk.Frame(master=parent,
+            width=150,
+            bg='black',
+        )
+
+        frm_picker.pack(
+            side='left',
+            expand=True, fill='both',
+        )
