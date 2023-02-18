@@ -11,15 +11,16 @@ class Drawer(tk.Frame):
 
         self.root = root
 
-    def run(self):
-        Picker(self).pack(
-            side='left',
+    def run(self, path):
+        c = Canvas(self)
+        c.pack(
+            side='right',
             expand=True, fill='both',
         )
 
-        Canvas(self).pack(
+        Picker(self, c, path).pack(
             side='left',
-            expand=True, fill='both',
+            expand=False, fill='both',
         )
 
         self.pack(

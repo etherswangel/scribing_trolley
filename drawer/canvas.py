@@ -1,41 +1,122 @@
+import os
 import tkinter as tk
-import tkinter.ttk as ttk
 
 class Canvas(tk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(master=parent, *args, **kwargs)
 
-        self.origin = None
-        self.last_coor = None
-        self.trajactory = []
+        self.scale = 20
         self.drawable = True
-        self.scale = 75
+        self.trajactory = [[0, 0]]
 
         self.pack_canvas(self)
         self.pack_buttons(self)
 
+        self.mode_edit()
+
+
+    def init_canvas(self):
+        w = int(self.canvas['width'])
+        h = int(self.canvas['height'])
+        ox = w * 0.5
+        oy = h * 0.75
+
+        self.origin = ox, oy
+        self.last_coor = self.origin
+
+        self.canvas.delete('all')
+        self.canvas.create_oval(ox-4, oy-4, ox+4, oy+4, outline='red', fill='red')
+
+        y, n = oy, 0
+        while y < h:
+            y += self.scale
+            n += 1
+        while y > 0:
+            if n%5 == 0:
+                self.canvas.create_line(0, y, w, y, width=2, fill='grey')
+            else:
+                self.canvas.create_line(0, y, w, y, fill='grey')
+            y -= self.scale
+            n -= 1
+
+        x, n = ox, 0
+        while x < w:
+            x += self.scale
+            n += 1
+        while x > 0:
+            if n%5 == 0:
+                self.canvas.create_line(x, 0, x, h, width=2, fill='grey')
+            else:
+                self.canvas.create_line(x, 0, x, h, fill='grey')
+            x -= self.scale
+            n -= 1
+
 
     def confirm(self):
-        if not self.drawable:
-            return
+        ox, oy = self.origin
+        lx, ly = self.last_coor
 
-        ox, oy = self.origin if self.origin else (None, None)
-        lx, ly = self.last_coor if self.last_coor else (None, None)
-
-        if ox and oy and lx and ly and ox!=lx and oy!=ly:
-            self.canvas.create_line(lx, ly, ox, oy, width=3, smooth=True)
-            self.trajactory.append([ox, oy])
+        if self.drawable and ox!=lx and oy!=ly:
+            self.canvas.create_line(lx, ly, ox, oy, width=3)
+            self.trajactory.append([0, 0])
             self.drawable = False
-            print(self.trajactory)
+
+        self.mode_show(self.trajactory)
 
 
     def clear(self):
-        self.canvas.delete('all')
-        self.origin = None
-        self.last_coor = None
-        self.trajactory = []
         self.drawable = True
+        self.trajactory = [[0, 0]]
+
+        self.init_canvas()
+
+
+    def publish(self):
+        print('publish: ')
+        for t in self.trajactory:
+            print(t)
+
+
+    def save_file(self, file_name='新建路径', path=os.path.join(os.getcwd(), 'paths')):
+        file = os.path.join(path, file_name + '.txt')
+        with open(file, 'w') as f:
+            f.write(file_name + '\n')
+            for t in self.trajactory:
+                f.write(str(t[0]) + ' ' + str(t[1]) + '\n')
+
+
+    def mode_show(self, trajectory):
+        self.drawable = False
+        self.trajactory = trajectory
+
+        self.init_canvas()
+        self.draw(trajectory)
+
+        self.btn2['text'] = '保存'
+        self.btn2['command'] = self.save_file
+        self.btn1['text'] = '确定'
+        self.btn1['command'] = self.publish
+
+
+    def mode_edit(self):
+        self.clear()
+
+        self.btn2['text'] = '确定'
+        self.btn2['command'] = self.confirm
+        self.btn1['text'] = '清空'
+        self.btn1['command'] = self.clear
+
+
+    def draw(self, trajectory):
+        if not trajectory:
+            return
+
+        path = []
+        for t in trajectory:
+            path.append(self.pose_to_pix(t))
+
+        self.canvas.create_line(path, width=3)
 
 
     def pack_canvas(self, parent):
@@ -45,39 +126,31 @@ class Canvas(tk.Frame):
                 return
 
             x, y = e.x, e.y
-            lx, ly = self.last_coor if self.last_coor else (None, None)
+            lx, ly = self.last_coor
 
-            if not lx or not ly:
-                canvas.create_oval(x-4, y-4, x+4, y+4, outline='red', fill='red')
-                self.origin = x, y
-            elif abs(x-lx) > 2 or abs(y-ly) > 2:
-                canvas.create_line(lx, ly, x, y, width=3, smooth=True)
-            else:
+            if not (abs(x-lx) > 2 or abs(y-ly) > 2):
                 return
 
+            self.canvas.create_line(lx, ly, x, y, width=3)
+
             self.last_coor = x, y
-            self.trajactory.append([x, y])
+            self.trajactory.append(self.pix_to_pose([x, y]))
 
-        def grid():
-            pass
-
-        canvas = tk.Canvas(master=parent,
+        self.canvas = tk.Canvas(master=parent,
             width=500, height=400,
             bg='white',
         )
-        canvas.bind('<Button-1>', paint)
-        canvas.bind('<B1-Motion>', paint)
-        canvas.pack(
+        self.canvas.bind('<Button-1>', paint)
+        self.canvas.bind('<B1-Motion>', paint)
+        self.canvas.pack(
             side='top',
             expand=True, fill='both',
         )
 
-        self.canvas = canvas
-
 
     def pack_buttons(self, parent):
 
-        def add_button(name, func):
+        def add_button():
             frm = tk.Frame(master=frm_buttons,
                 width=75,
             )
@@ -88,12 +161,13 @@ class Canvas(tk.Frame):
                 padx=9, pady=7,
             )
 
-            tk.Button(master=frm,
-                text=name,
-                command=func
-            ).pack(
+            btn = tk.Button(master=frm,
+            )
+            btn.pack(
                 expand=True, fill='both',
             )
+
+            return btn
 
         frm_buttons = tk.Frame(master=parent,
             height=50,
@@ -105,6 +179,23 @@ class Canvas(tk.Frame):
             padx=7,
         )
 
-        add_button('清空', self.clear)
-        add_button('确定', self.confirm)
+        self.btn1 = add_button()
+        self.btn2 = add_button()
+
+
+    def pose_to_pix(self, pose):
+        ox, oy = self.origin
+        x = -pose[1]*self.scale + ox
+        y = -pose[0]*self.scale + oy
+
+        return [x, y]
+
+
+    def pix_to_pose(self, pix):
+        ox, oy = self.origin
+        x = -(pix[1]-oy) / self.scale
+        y = -(pix[0]-ox) / self.scale
+
+        return [x, y]
+
 

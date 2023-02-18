@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 
 from drawer import Drawer
@@ -8,5 +9,6 @@ if __name__ == '__main__':
         lambda _: root.destroy()
     )
 
-    Drawer(root).run()
+    path=os.path.join(os.getcwd(), 'paths')
+    Drawer(root).run(path)
 
