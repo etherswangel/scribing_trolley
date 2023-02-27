@@ -1,7 +1,11 @@
 import os
 from functools import partial
+
 import tkinter as tk
 import tkinter.ttk as ttk
+
+import numpy as np
+from scipy.interpolate import interp1d
 
 class Picker(tk.Frame):
 
