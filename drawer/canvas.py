@@ -11,7 +11,6 @@ class Canvas(tk.Frame):
         self.scale = 20
         self.drawable = True
         self.trajactory = [[0, 0]]
-        self.controler = Control()
 
         self.pack_canvas(self)
         self.pack_buttons(self)
@@ -77,7 +76,8 @@ class Canvas(tk.Frame):
 
     def publish(self):
         print('publish: ')
-        self.controler.run(self.trajactory)
+        path = Control(self.trajactory).run()
+        # self.draw(path, smooth=True)
 
 
     def save_file(self, file_name='新建路径', path=os.path.join(os.getcwd(), 'paths')):
@@ -110,7 +110,7 @@ class Canvas(tk.Frame):
         self.btn1['command'] = self.clear
 
 
-    def draw(self, trajectory):
+    def draw(self, trajectory, smooth=False):
         if not trajectory:
             return
 
@@ -118,7 +118,7 @@ class Canvas(tk.Frame):
         for t in trajectory:
             path.append(self.pose_to_pix(t))
 
-        self.canvas.create_line(path, width=3)
+        self.canvas.create_line(path, width=3, smooth=smooth)
 
 
     def pack_canvas(self, parent):
