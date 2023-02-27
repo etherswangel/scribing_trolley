@@ -1,6 +1,8 @@
 import os
 import tkinter as tk
 
+from .control import Control
+
 class Canvas(tk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
@@ -74,8 +76,7 @@ class Canvas(tk.Frame):
 
     def publish(self):
         print('publish: ')
-        for t in self.trajactory:
-            print(t)
+        Control(self.trajactory).run()
 
 
     def save_file(self, file_name='新建路径', path=os.path.join(os.getcwd(), 'paths')):
