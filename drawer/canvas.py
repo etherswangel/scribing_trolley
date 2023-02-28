@@ -5,12 +5,17 @@ from .control import Control
 
 class Canvas(tk.Frame):
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, root, parent, *args, **kwargs):
         super().__init__(master=parent, *args, **kwargs)
 
+        self.root = root
         self.scale = 20
         self.drawable = True
         self.trajactory = [[0, 0]]
+
+
+    def set_picker(self, picker):
+        self.picker = picker
 
         self.pack_canvas(self)
         self.pack_buttons(self)
@@ -59,6 +64,10 @@ class Canvas(tk.Frame):
         ox, oy = self.origin
         lx, ly = self.last_coor
 
+        if len(self.trajactory) == 1:
+            print('empty trajectory')
+            return
+
         if self.drawable and ox!=lx and oy!=ly:
             self.canvas.create_line(lx, ly, ox, oy, width=3)
             self.trajactory.append([0, 0])
@@ -75,17 +84,56 @@ class Canvas(tk.Frame):
 
 
     def publish(self):
-        print('publish: ')
         path = Control(self.trajactory).run()
-        # self.draw(path, smooth=True)
+        self.draw(path, width=2, smooth=True, fill='orange')
 
 
-    def save_file(self, file_name='新建路径', path=os.path.join(os.getcwd(), 'paths')):
+    def save_file(self, path=os.path.join(os.getcwd(), 'paths')):
+        file_name = '新建路径'
+        def popup(text):
+            def get_text():
+                nonlocal top, text, txt
+                text = txt.get()
+                if text != '':
+                    top.destroy()
+
+            top = tk.Toplevel(master=self,
+                width=200, height=150,
+            )
+
+            tk.Label(master=top,
+                text='路径名: '
+            ).pack(
+                side='left',
+            )
+
+            txt = tk.Entry(master=top,
+                width=20,
+            )
+            txt.insert(0, text)
+            txt.pack(
+                side='left',
+            )
+
+            tk.Button(master=top,
+                text='确定',
+                command=get_text
+            ).pack(
+                side='left',
+            )
+
+            self.wait_window(top)
+            return text
+
+        file_name = popup(file_name)
+
         file = os.path.join(path, file_name + '.txt')
         with open(file, 'w') as f:
             f.write(file_name + '\n')
             for t in self.trajactory:
                 f.write(str(t[0]) + ' ' + str(t[1]) + '\n')
+
+        self.picker.refresh()
 
 
     def mode_show(self, trajectory):
@@ -110,7 +158,7 @@ class Canvas(tk.Frame):
         self.btn1['command'] = self.clear
 
 
-    def draw(self, trajectory, smooth=False):
+    def draw(self, trajectory, width=3, smooth=False, fill='black'):
         if not trajectory:
             return
 
@@ -118,7 +166,18 @@ class Canvas(tk.Frame):
         for t in trajectory:
             path.append(self.pose_to_pix(t))
 
-        self.canvas.create_line(path, width=3, smooth=smooth)
+        self.canvas.create_line(path, width=width, smooth=smooth, fill=fill)
+
+
+    def zoom(self, dir):
+        if dir == 'in':
+            self.scale += 5
+        else:
+            self.scale -= 5
+        if self.drawable:
+            self.mode_edit()
+        else:
+            self.mode_show(self.trajactory)
 
 
     def pack_canvas(self, parent):
@@ -183,6 +242,13 @@ class Canvas(tk.Frame):
 
         self.btn1 = add_button()
         self.btn2 = add_button()
+
+        btn_zoom_in = add_button()
+        btn_zoom_in['text'] = '放大'
+        btn_zoom_in['command'] = lambda: self.zoom('in')
+        btn_zoom_out = add_button()
+        btn_zoom_out['text'] = '缩小'
+        btn_zoom_out['command'] = lambda: self.zoom('out')
 
 
     def pose_to_pix(self, pose):

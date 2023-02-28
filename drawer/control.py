@@ -99,7 +99,6 @@ class Control:
 
 
     def run(self):
-        print(self.trajectory)
         idx = self.get_target([self.state.x, self.state.y])
         path=[]
         while idx < len(self.trajectory)-1:

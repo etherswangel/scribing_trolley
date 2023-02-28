@@ -4,23 +4,30 @@ from functools import partial
 import tkinter as tk
 import tkinter.ttk as ttk
 
-import numpy as np
-from scipy.interpolate import interp1d
-
 class Picker(tk.Frame):
 
-    def __init__(self, parent, canvas, path, *args, **kwargs):
+    def __init__(self, root, parent, path, *args, **kwargs):
         super().__init__(master=parent, *args, **kwargs)
 
-        self.canvas = canvas
+        self.root = root
         self.path = path
         self.names = []
 
-        self.read_files()
-        self.pack_picker(self)
 
+    def set_canvas(self, canvas):
+        self.canvas = canvas
+
+        self.read_files()
+        self.picker = self.pack_picker(self)
+
+
+    def refresh(self):
+        self.picker.destroy()
+        self.read_files()
+        self.picker = self.pack_picker(self)
 
     def read_files(self):
+        self.names = []
         files = [f for f in os.listdir(self.path) if os.path.isfile(os.path.join(self.path, f))]
         for file in files:
             with open(os.path.join(self.path, file), 'r') as f:
@@ -35,7 +42,6 @@ class Picker(tk.Frame):
             coor = f.readlines()
         trajectory = [[float(n) for n in c.strip().split()] for c in coor]
 
-        print('read')
         self.canvas.mode_show(trajectory)
 
 
@@ -52,6 +58,7 @@ class Picker(tk.Frame):
         self.pack_box(frm_picker, name='-- 绘制 --')
         for i in range(len(self.names)):
             self.pack_box(frm_picker, idx=i)
+        return frm_picker
 
 
     def pack_box(self, parent, idx=None, name=''):
