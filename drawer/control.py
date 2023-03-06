@@ -60,17 +60,17 @@ class Control:
 
         ret = []
         for i in range(len(x) - 1):
-            dx = abs(x[i+1] - x[i])
-            dy = abs(y[i+1] - y[i])
+            dx = x[i+1] - x[i]
+            dy = y[i+1] - y[i]
             d = math.sqrt(dx * dx + dy * dy)
             n = int(d / 0.1) + 1
 
             xs = []
             for j in range(n):
-                xs.append(x[i] + j * dx)
+                xs.append(x[i] + j * dx / n)
             ys = []
             for j in range(n):
-                ys.append(y[i] + j * dy)
+                ys.append(y[i] + j * dy / n)
 
             for i in range(n):
                 ret.append([xs[i], ys[i]])
