@@ -5,11 +5,11 @@ import rospy
 from geometry_msgs.msg import Twist
 
 # 轴距
-L = 0.4
+L = 0.15
 # 前视距离
 k = 0.1
 # 前视距离基数
-Lfc = 0.1
+Lfc = 0.4
 # 速度
 v = 0.1
 # 周期
@@ -23,7 +23,7 @@ class State:
         self.v = v
 
     def update(self, delta):
-        time.sleep(dt)
+        # time.sleep(dt)
 
         l = self.v * dt
         sy = math.sin(self.yaw)
@@ -107,6 +107,7 @@ class Control:
         Lf = k * self.state.v + Lfc
         delta = math.atan2(2 * L * math.sin(alpha) / Lf, 1.0)
 
+        delta = min(0.349, delta)
         return idx, delta
 
 
