@@ -1,5 +1,9 @@
 import math
+import time
 import numpy as np
+
+import rospy
+from geometry_msgs.msg import Twist
 
 # 轴距
 L = 0.4
@@ -7,6 +11,8 @@ L = 0.4
 k = 0.1
 # 前视距离基数
 Lfc = 0.1
+# 速度
+v = 0.1
 # 周期
 dt = 0.1
 
@@ -18,6 +24,8 @@ class State:
         self.v = v
 
     def update(self, delta):
+        time.sleep(dt)
+
         l = self.v * dt
         sy = math.sin(self.yaw)
         cy = math.cos(self.yaw)
@@ -43,7 +51,7 @@ class State:
 class Control:
     def __init__(self, trajectory):
         self.trajectory = self.interp(trajectory)
-        self.state = State(v=0.1)
+        self.state = State(v=v)
 
 
     def interp(self, trajectory):
@@ -99,11 +107,35 @@ class Control:
 
 
     def run(self):
+        rospy.init_node('drawer', anonymous=True)
+        vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5) #创建速度话题发布者，'~cmd_vel'='节点名/cmd_vel'
+
         idx = self.get_target([self.state.x, self.state.y])
         path=[]
         while idx < len(self.trajectory)-1:
             idx, delta = self.pure_pursuit(idx)
+            print('delta: ', delta)
+            twist = Twist()
+            twist.linear.x = v
+            twist.linear.y = 0
+            twist.linear.z = 0
+            twist.angular.x = 0
+            twist.angular.y = 0
+            twist.angular.z = delta
+            vel_pub.publish(twist)
+
             self.state.update(delta)
+            print('curr: ', self.state.x, self.state.y)
             path.append([self.state.x, self.state.y])
+
+        twist = Twist()
+        twist.linear.x = 0
+        twist.linear.y = 0
+        twist.linear.z = 0
+        twist.angular.x = 0
+        twist.angular.y = 0
+        twist.angular.z = 0
+        vel_pub.publish(twist)
+
         return path
 
