@@ -23,7 +23,7 @@ class State:
         self.v = v
 
     def update(self, delta):
-        # time.sleep(dt)
+        time.sleep(dt)
 
         l = self.v * dt
         sy = math.sin(self.yaw)
