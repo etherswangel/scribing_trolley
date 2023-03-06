@@ -1,6 +1,5 @@
 import math
 import time
-import numpy as np
 
 import rospy
 from geometry_msgs.msg import Twist
@@ -63,11 +62,16 @@ class Control:
         for i in range(len(x) - 1):
             dx = abs(x[i+1] - x[i])
             dy = abs(y[i+1] - y[i])
-            d = np.sqrt(dx * dx + dy * dy)
+            d = math.sqrt(dx * dx + dy * dy)
             n = int(d / 0.1) + 1
 
-            xs = np.linspace(x[i], x[i+1], n).tolist()
-            ys = np.linspace(y[i], y[i+1], n).tolist()
+            xs = []
+            for j in range(n):
+                xs.append(x[i] + j * dx)
+            ys = []
+            for j in range(n):
+                ys.append(y[i] + j * dy)
+
             for i in range(n):
                 ret.append([xs[i], ys[i]])
 
