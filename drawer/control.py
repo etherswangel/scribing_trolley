@@ -107,11 +107,11 @@ class State:
         self.x = pose.pose.pose.position.x
         self.y = pose.pose.pose.position.y
 
-        _, _, y = m_to_e(q_to_r(pose.pose.pose.orientation))
+        y, _, _ = m_to_e(q_to_r(pose.pose.pose.orientation))
         self.yaw = y
-        print('x: ', self.x)
-        print('y: ', self.y)
-        print('yaw: ', self.yaw)
+        # print('x: ', self.x)
+        # print('y: ', self.y)
+        # print('yaw: ', self.yaw)
 
 
 
@@ -186,22 +186,23 @@ class Control:
 
         idx = self.get_target([self.state.x, self.state.y])
         path=[]
-        while not rospy.is_shutdown():
-        # while idx < len(self.trajectory)-1:
-            # idx, delta = self.pure_pursuit(idx)
+        while not rospy.is_shutdown() and idx < len(self.trajectory):
+            idx, delta = self.pure_pursuit(idx)
             # print('delta: ', delta)
-            # twist = Twist()
-            # twist.linear.x = v
-            # twist.linear.y = 0
-            # twist.linear.z = 0
-            # twist.angular.x = 0
-            # twist.angular.y = 0
-            # twist.angular.z = delta
-            # vel_pub.publish(twist)
+
+            twist = Twist()
+            twist.linear.x = v
+            twist.linear.y = 0
+            twist.linear.z = 0
+            twist.angular.x = 0
+            twist.angular.y = 0
+            twist.angular.z = delta
+            vel_pub.publish(twist)
 
             # self.state.update(delta)
-            print('curr: ', self.state.x, self.state.y)
-            # path.append([self.state.x, self.state.y])
+            # print('curr: ', self.state.x, self.state.y)
+
+            path.append([self.state.x, self.state.y])
 
         twist = Twist()
         twist.linear.x = 0
