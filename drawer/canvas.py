@@ -33,7 +33,7 @@ class Canvas(tk.Frame):
         self.last_coor = self.origin
 
         self.canvas.delete('all')
-        self.canvas.create_oval(ox-4, oy-4, ox+4, oy+4, outline='red', fill='red')
+        self.canvas.create_oval(ox-5, oy-5, ox+5, oy+5, outline='red', fill='red')
 
         y, n = oy, 0
         while y < h:
@@ -41,7 +41,7 @@ class Canvas(tk.Frame):
             n += 1
         while y > 0:
             if n%5 == 0:
-                self.canvas.create_line(0, y, w, y, width=2, fill='grey')
+                self.canvas.create_line(0, y, w, y, width=3, fill='grey')
             else:
                 self.canvas.create_line(0, y, w, y, fill='grey')
             y -= self.scale
@@ -53,7 +53,7 @@ class Canvas(tk.Frame):
             n += 1
         while x > 0:
             if n%5 == 0:
-                self.canvas.create_line(x, 0, x, h, width=2, fill='grey')
+                self.canvas.create_line(x, 0, x, h, width=3, fill='grey')
             else:
                 self.canvas.create_line(x, 0, x, h, fill='grey')
             x -= self.scale

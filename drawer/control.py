@@ -7,13 +7,13 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 
 # 轴距
 L = 0.15
-# 前视距离
+# 前视距离系数
 k = 0.1
 # 前视距离基数
-Lfc = 0.4
+Lfc = 0.45
 # 速度
-v = 0.1
-# 周期
+v = 0.2
+# 周期（仅用于模拟）
 dt = 0.1
 
 class State:
@@ -186,7 +186,7 @@ class Control:
 
         idx = self.get_target([self.state.x, self.state.y])
         path=[]
-        while not rospy.is_shutdown() and idx < len(self.trajectory):
+        while not rospy.is_shutdown() and idx < len(self.trajectory)-1:
             idx, delta = self.pure_pursuit(idx)
             # print('delta: ', delta)
 
