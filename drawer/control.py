@@ -1,6 +1,5 @@
 import math
 import time
-from scipy.spatial.transform import Rotation
 
 import rospy
 from geometry_msgs.msg import Twist
@@ -48,11 +47,68 @@ class State:
         self.yaw += alpha
 
     def set_state(self, pose):
+        def q_to_r(q):
+            m = [0] * 16
+            c = q.x
+            d = q.y
+            e = q.z
+            f = q.w
+            g = c + c
+            h = d + d
+            k = e + e;
+            q = c * g;
+            l = c * h
+            c = c * k
+            n = d * h
+            d = d * k
+            e = e * k
+            g = f * g
+            h = f * h
+            f = f * k;
+            m[0] = 1 - (n + e);
+            m[4] = l - f;
+            m[8] = c + h;
+            m[1] = l + f;
+            m[5] = 1 - (q + e);
+            m[9] = d - g;
+            m[2] = c - h;
+            m[6] = d + g;
+            m[10] = 1 - (q + n);
+            m[3] = 0;
+            m[7] = 0;
+            m[11] = 0;
+            m[12] = 0;
+            m[13] = 0;
+            m[14] = 0;
+            m[15] = 1;
+            return m
+
+        def m_to_e(m):
+            d = lambda x, l, u: max(min(x, u), l)
+            e = m
+            m = e[0];
+            f = e[4]
+            g = e[8]
+            h = e[1]
+            k = e[5]
+            l = e[9]
+            n = e[2]
+            p = e[6]
+            e = e[10];
+            _x = math.asin(d(p, -1, 1)),
+            if .99999 > abs(p):
+                _y = math.atan2(-n, e)
+                _z = math.atan2(-f, k)
+            else:
+                _y = 0
+                _z = math.atan2(h, m)
+            return _z, _x, _y
+
         self.x = pose.pose.pose.position.x
         self.y = pose.pose.pose.position.y
 
-        r = Rotation.from_quat(pose.pose.pose.orientation).as_euler('zyx')
-        self.yaw = r[0]
+        _, _, y = m_to_e(q_to_r(pose.pose.pose.orientation))
+        self.yaw = y
         print('x: ', self.x)
         print('y: ', self.y)
         print('yaw: ', self.yaw)
