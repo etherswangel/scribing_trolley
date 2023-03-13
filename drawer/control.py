@@ -5,14 +5,19 @@ import rospy
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
-# 轴距
-L = 0.15
+# 前视距离 = v * k + Lfc
+# 看得越远，转弯越早，弯越大，速度可以越大
+# 看得近，路线走的准，但速度不能太高
+
+# 速度
+v = 0.2
 # 前视距离系数
 k = 0.1
 # 前视距离基数
 Lfc = 0.45
-# 速度
-v = 0.2
+
+# 轴距
+L = 0.15
 # 周期（仅用于模拟）
 dt = 0.1
 
@@ -88,10 +93,8 @@ class State:
             e = m
             m = e[0];
             f = e[4]
-            g = e[8]
             h = e[1]
             k = e[5]
-            l = e[9]
             n = e[2]
             p = e[6]
             e = e[10];
@@ -107,8 +110,7 @@ class State:
         self.x = pose.pose.pose.position.x
         self.y = pose.pose.pose.position.y
 
-        y, _, _ = m_to_e(q_to_r(pose.pose.pose.orientation))
-        self.yaw = y
+        self.yaw, _, _ = m_to_e(q_to_r(pose.pose.pose.orientation))
         # print('x: ', self.x)
         # print('y: ', self.y)
         # print('yaw: ', self.yaw)
@@ -181,14 +183,13 @@ class Control:
 
     def run(self):
         rospy.init_node('drawer', anonymous=True)
-        vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5) #创建速度话题发布者，'~cmd_vel'='节点名/cmd_vel'
+        vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
         rospy.Subscriber('/robot_pose_ekf/odom_combined', PoseWithCovarianceStamped, self.state.set_state)
 
         idx = self.get_target([self.state.x, self.state.y])
         path=[]
         while not rospy.is_shutdown() and idx < len(self.trajectory)-1:
             idx, delta = self.pure_pursuit(idx)
-            # print('delta: ', delta)
 
             twist = Twist()
             twist.linear.x = v
@@ -199,6 +200,7 @@ class Control:
             twist.angular.z = delta
             vel_pub.publish(twist)
 
+            # 仅用于模拟
             # self.state.update(delta)
             # print('curr: ', self.state.x, self.state.y)
 
