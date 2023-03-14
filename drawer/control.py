@@ -181,9 +181,9 @@ class Control:
         alpha = math.atan2(del_y, del_x) - self.state.yaw
 
         # delta = math.atan2(2 * L * math.sin(alpha) / Lf, 1.0)
+        # delta = min(0.349, delta)
         omega = v * 2 * math.sin(alpha) / Lf
 
-        omega = min(0.349, omega)
         return idx, omega
 
 
