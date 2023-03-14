@@ -173,12 +173,18 @@ class Control:
         idx = max(last_idx, self.get_target([self.state.x, self.state.y]))
         t = self.trajectory[idx]
 
-        alpha = math.atan2(t[1] - self.state.y, t[0] - self.state.x) - self.state.yaw
-        Lf = k * self.state.v + Lfc
-        delta = math.atan2(2 * L * math.sin(alpha) / Lf, 1.0)
+        del_x = t[0] - self.state.x
+        del_y = t[1] - self.state.y
 
-        delta = min(0.349, delta)
-        return idx, delta
+        # Lf = k * self.state.v + Lfc
+        Lf = math.sqrt(del_x ** 2 + del_y ** 2)
+        alpha = math.atan2(del_y, del_x) - self.state.yaw
+
+        # delta = math.atan2(2 * L * math.sin(alpha) / Lf, 1.0)
+        omega = v * 2 * math.sin(alpha) / Lf
+
+        omega = min(0.349, omega)
+        return idx, omega
 
 
     def run(self):
